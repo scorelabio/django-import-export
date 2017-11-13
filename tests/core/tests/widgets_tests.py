@@ -194,7 +194,7 @@ class ForeignKeyWidgetTest(TestCase):
         author2.save()
         birthday_widget = BirthdayWidget(Author, 'name')
         row = {'name': "Foo", 'birthday': author2.birthday}
-        self.assertEqual(birthday_widget.clean("Foo", row), author2.pk)
+        self.assertEqual(birthday_widget.clean("Foo", row), author2.name)
 
 
 class ManyToManyWidget(TestCase):

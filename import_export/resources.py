@@ -544,7 +544,8 @@ class Resource(six.with_metaclass(DeclarativeMetaclass)):
         # Resolve ForeignKeyWidgets in bulk
         for field in self.get_import_fields():
             if field.column_name in dataset.headers\
-            and isinstance(field.widget, widgets.ForeignKeyWidget):
+            and isinstance(field.widget, widgets.ForeignKeyWidget)\
+            and dataset[field.column_name][0] != '': # Avoid tablib InvalidDimensions error
                 objects = field.widget.bulk_clean(
                     values=dataset[field.column_name]
                 )

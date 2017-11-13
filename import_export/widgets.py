@@ -344,6 +344,10 @@ class ForeignKeyWidget(Widget):
             return ""
         return getattr(value, self.field)
 
+    def is_empty(self, value):
+        # 0 is not empty
+        return value is None or value == ""
+
     def clean(self, value, row=None, *args, **kwargs):
         if self.is_empty(value):
             return None
@@ -368,7 +372,7 @@ class ForeignKeyWidget(Widget):
             for obj in qs
         })
         objects = map(
-            lambda x: obj_mapping[x],
+            lambda x: obj_mapping[int(x)],
             values,
         )
         return objects

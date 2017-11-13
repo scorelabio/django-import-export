@@ -169,7 +169,10 @@ class ForeignKeyWidgetTest(TestCase):
         self.author = Author.objects.create(name='Foo')
 
     def test_clean(self):
-        self.assertEqual(self.widget.clean(1), self.author)
+        self.assertEqual(self.widget.clean(1), self.author.pk)
+
+    def test_bulk_clean(self):
+        self.assertEqual(self.widget.bulk_clean([1]), [self.author])
 
     def test_clean_empty(self):
         self.assertEqual(self.widget.clean(""), None)
@@ -191,7 +194,7 @@ class ForeignKeyWidgetTest(TestCase):
         author2.save()
         birthday_widget = BirthdayWidget(Author, 'name')
         row = {'name': "Foo", 'birthday': author2.birthday}
-        self.assertEqual(birthday_widget.clean("Foo", row), author2)
+        self.assertEqual(birthday_widget.clean("Foo", row), author2.pk)
 
 
 class ManyToManyWidget(TestCase):

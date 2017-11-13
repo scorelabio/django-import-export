@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import operator
+
 from decimal import Decimal
 from datetime import datetime, date
 from django.utils import datetime_safe, timezone, six
 from django.utils.encoding import smart_text
+from django.db import models
 from django.conf import settings
 
 try:
@@ -313,7 +316,7 @@ class ForeignKeyWidget(Widget):
         self.field = field
         super(ForeignKeyWidget, self).__init__(*args, **kwargs)
 
-    def get_queryset(self, value, row, *args, **kwargs):
+    def get_queryset(self):
         """
         Returns a queryset of all objects for this Model.
 
@@ -336,17 +339,39 @@ class ForeignKeyWidget(Widget):
         """
         return self.model.objects.all()
 
-    def clean(self, value, row=None, *args, **kwargs):
-        val = super(ForeignKeyWidget, self).clean(value)
-        if val:
-            return self.get_queryset(value, row, *args, **kwargs).get(**{self.field: val})
-        else:
-            return None
-
     def render(self, value, obj=None):
         if value is None:
             return ""
         return getattr(value, self.field)
+
+    def clean(self, value, row=None, *args, **kwargs):
+        if self.is_empty(value):
+            return None
+        return super(ForeignKeyWidget, self).clean(value, row, *args, **kwargs)
+
+    def bulk_clean(self, values):
+        unique_values = set(val for val in values if val)
+        lookups = [
+            models.Q(**{self.field: val})
+            for val in unique_values
+            if val
+        ]
+        obj_mapping = {None: None, '': None}
+        if not lookups:
+            return obj_mapping
+        lookup = reduce(operator.or_, lookups)
+        qs = self.get_queryset().filter(lookup)
+        if len(qs) != len(unique_values):
+            raise ValidationError("Missing values for field %s" % self.field)
+        obj_mapping.update(**{
+            getattr(obj, self.field): obj
+            for obj in qs
+        })
+        objects = map(
+            lambda x: obj_mapping[x],
+            values,
+        )
+        return objects
 
 
 class ManyToManyWidget(Widget):

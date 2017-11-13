@@ -541,10 +541,25 @@ class Resource(six.with_metaclass(DeclarativeMetaclass)):
         if collect_failed_rows:
             result.add_dataset_headers(dataset.headers)
 
+        # Resolve ForeignKeyWidgets in bulk
+        for field in self.get_import_fields():
+            if field.column_name in dataset.headers\
+            and isinstance(field.widget, widgets.ForeignKeyWidget):
+                objects = field.widget.bulk_clean(
+                    values=dataset[field.column_name]
+                )
+                del dataset[field.column_name]
+                dataset.append_col(objects, header=field.column_name)
+
+        # Import rows
         for row in dataset.dict:
-            row_result = self.import_row(row, instance_loader,
-                                         using_transactions=using_transactions, dry_run=dry_run,
-                                         **kwargs)
+            row_result = self.import_row(
+                row,
+                instance_loader,
+                using_transactions=using_transactions,
+                dry_run=dry_run,
+                **kwargs
+            )
             result.increment_row_result_total(row_result)
             if row_result.errors:
                 if collect_failed_rows:

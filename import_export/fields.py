@@ -33,7 +33,7 @@ class Field(object):
     empty_values = [None, '']
 
     def __init__(self, attribute=None, column_name=None, widget=None,
-                 default=NOT_PROVIDED, readonly=False, saves_null_values=True):
+                 default=NOT_PROVIDED, readonly=False, required=False, saves_null_values=True):
         self.attribute = attribute
         self.default = default
         self.column_name = column_name
@@ -41,6 +41,7 @@ class Field(object):
             widget = widgets.Widget()
         self.widget = widget
         self.readonly = readonly
+        self.required = required
         self.saves_null_values = saves_null_values
 
     def __repr__(self):

@@ -801,7 +801,6 @@ class ModelResource(six.with_metaclass(ModelDeclarativeMetaclass, Resource)):
         """
         Returns a Resource Field instance for the given Django model field.
         """
-
         FieldWidget = self.widget_from_django_field(django_field)
         widget_kwargs = self.widget_kwargs_for_field(field_name)
         field = Field(
@@ -810,6 +809,7 @@ class ModelResource(six.with_metaclass(ModelDeclarativeMetaclass, Resource)):
             widget=FieldWidget(**widget_kwargs),
             readonly=readonly,
             default=django_field.default,
+            required=not django_field.blank,
         )
         return field
 

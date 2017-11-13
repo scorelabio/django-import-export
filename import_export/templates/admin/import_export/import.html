@@ -26,7 +26,11 @@
 
     <p>
       {% trans "This importer will import the following fields: " %}
-      <code>{{ fields|join:", " }}</code>
+      <code> 
+        {% for field in fields %} 
+          {% if field.required %}<b>{{ field.column_name }}</b>{% else %}{{ field.column_name }}{% endif %}{% if not forloop.last %},{% endif %} 
+        {% endfor %} 
+      </code> 
     </p>
 
     <fieldset class="module aligned">

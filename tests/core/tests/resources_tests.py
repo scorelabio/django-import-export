@@ -454,15 +454,19 @@ class ModelResourceTest(TestCase):
         self.assertEqual(dataset.dict[0]['author'], author1.pk)
 
     def test_foreign_keys_import(self):
+        author1 = Author.objects.create(name='Foo')
         author2 = Author.objects.create(name='Bar')
         headers = ['id', 'name', 'author']
-        row = [None, 'FooBook', author2.pk]
+        row = [None, 'FooBook', author1.pk]
         dataset = tablib.Dataset(row, headers=headers)
-        with self.assertNumQueries(10):
+        dataset.append([None, 'BarBook', author2.pk])
+        # Author select should take only 1 query
+        with self.assertNumQueries(15):
             self.resource.import_data(dataset, raise_errors=True)
-
-        book = Book.objects.get(name='FooBook')
-        self.assertEqual(book.author, author2)
+        book1 = Book.objects.get(name='FooBook')
+        book2 = Book.objects.get(name='BarBook')
+        self.assertEqual(book1.author, author1)
+        self.assertEqual(book2.author, author2)
 
     def test_m2m_export(self):
         cat1 = Category.objects.create(name='Cat 1')

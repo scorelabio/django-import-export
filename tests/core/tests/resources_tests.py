@@ -460,7 +460,7 @@ class ModelResourceTest(TestCase):
         row = [None, 'FooBook', author1.pk]
         dataset = tablib.Dataset(row, headers=headers)
         dataset.append([None, 'BarBook', author2.pk])
-        # Author select should take only 1 query
+        # Author select query should take only 1 request
         with self.assertNumQueries(15):
             self.resource.import_data(dataset, raise_errors=True)
         book1 = Book.objects.get(name='FooBook')

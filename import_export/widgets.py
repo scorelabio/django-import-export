@@ -377,6 +377,27 @@ class ForeignKeyWidget(Widget):
         )
         return objects
 
+    def validate_unique(self, values):
+        '''
+        Perform a check on possible existing objects 
+        if the field has a unique constraint
+        
+        Return True if validated, else False
+        '''
+        values = [val for val in values if val]
+        unique_values = set(values)
+        # Check if all values are unique
+        if len(values) != len(unique_values):
+            return False
+        # Check if values are not already in database
+        lookups = [
+            models.Q(**{self.field: val})
+            for val in unique_values
+            if val
+        ]
+        lookup = reduce(operator.or_, lookups)
+        return not self.model.objects.filter(lookup).exists()
+
 
 class ManyToManyWidget(Widget):
     """
